@@ -1,0 +1,14 @@
+{
+    "require": {
+        "slim/slim": "3.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Controllers\\": "src/controllers"
+        }
+    },
+    "scripts": {
+        "start": "php -S localhost:8080 -t public",
+        "test": "phpunit"
+    }
+}
