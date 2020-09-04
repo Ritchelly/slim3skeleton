@@ -33,4 +33,13 @@ return function ( App $app ) {
         return $response;
     });
 
+    $app->get('/users', function (Request $request, Response $response, array $args) use($app) {
+
+        $db = $app->getContainer()->get('db');
+        $users = $db->table('user')->get();
+
+        $response->getBody()->write($users);
+        return $response;
+    });
+
 };

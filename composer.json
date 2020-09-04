@@ -1,11 +1,13 @@
 {
     "require": {
         "slim/slim": "3.*",
-        "ritch/ami-monitor": "dev-master"
+        "ritch/ami-monitor": "dev-master",
+        "illuminate/database": "~5.1"
     },
     "autoload": {
         "psr-4": {
-            "Controllers\\": "src/controllers"
+            "Controllers\\": "src/controllers",
+            "Src\\":"src/"
         }
     },
     "scripts": {
