@@ -10,15 +10,15 @@ require '../vendor/autoload.php';
 
 return function ( App $app ) {
 
-    $app->get('/queue/{name}', function (Request $request, Response $response, array $args) {
-        $name = $args['name'];
+    $app->get('/queue/{queuename}', function (Request $request, Response $response, array $args) {
+        $queuename = $args['queuename'];
 
         $ami = new Ami();
 
         $command  = [
             "Action" =>"QueueStatus",
-            "ActionID"=> "sdasda",
-            "Queue" => "callcenter"
+            "ActionID"=> "1234",
+            "Queue" => "{$queuename}"
         ];
 
         $events = [
@@ -26,9 +26,8 @@ return function ( App $app ) {
             "QueueParams"
         ];
 
-        $rs = json_encode( $ami->sendAction($command,$events), JSON_PRETTY_PRINT);
-
-        $response->getBody()->write($rs);
+        $queueStatus = json_encode( $ami->sendAction($command,$events), JSON_PRETTY_PRINT);
+        $response->getBody()->write($queueStatus);
     
         return $response;
     });
