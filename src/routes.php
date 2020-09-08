@@ -24,12 +24,13 @@ return function ( App $app ) {
         ];
 
         $events = [
-            "QueueMember", 
-            "QueueParams"
+            "QueueParams",
+            "QueueMember",
+            "QueueEntry" 
         ];
 
-        $queueStatus = json_encode( $ami->sendAction($command,$events), JSON_PRETTY_PRINT);
-        $response->getBody()->write($queueStatus);
+        $queueStatus = json_encode( $ami->sendAction( $command, $events ), JSON_PRETTY_PRINT);
+        $response->getBody()->write( $queueStatus );
     
         return $response;
     });
