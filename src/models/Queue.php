@@ -14,42 +14,33 @@ class Queue{
 
 	}
 	
-	function getQueueStatus() {
-
+	function getQueueStatus( $events = [ "All" ]  ) {
 		$ami = new Ami();
 
-	 /*    $command  = [
-			"Action" =>"QueueStatus",
-			"ActionID"=> "1234",
-			"Queue" => "{$queuename}"
-		]; */
 		$command  = [
 			"Action" =>"QueueStatus",
 			"ActionID"=> "1234",
+		//	"Queue" => "{$queuename}"
 			"Queue" => "callcenter"
-		];
-		$events = [
-			"QueueParams",
-			"QueueMember",
-			"QueueEntry" 
 		];
 	
 		return $ami->sendAction( $command, $events ); 
 	}
 
 	public function putCallWaiting( string $queueName, Array $callInfo ) {
-
-		$this->queue = [
-			$queueName => [
-				"CallsWaiting" => [
-					$callInfo["Uniqueid"] => $callInfo
-				]
-			]
-		];
+		$this->queue[ $queueName ] ["CallsWaiting"][ $callInfo["Uniqueid"] ] = $callInfo;
 	}
 
-	public function delCallWaiting( string $queueName, int $uniquedId ) {
-			unset( $this->queue[ $queueName ] ["CallsWaiting"] [ $uniquedId ] );
+	public function delCallWaiting( string $queueName, $uniqueId ) {
+		unset( $this->queue[ $queueName ] ["CallsWaiting"] [ $uniqueId ] );
+	}
+
+	public function getQueueCallsWaitingInformation() {
+		return $this->getQueueStatus( [" QueueEntry "] );
+	}
+
+	public function getQueuesInformation() {
+		return $this->queue;
 	}
 
 }

@@ -2,12 +2,20 @@
 
 namespace App;
 
+use Models\Agents;
+use Models\Queue;
+
 include 'vendor/autoload.php';
 
 set_time_limit(0);
 
 $webSocket = new WebSocket();
 $ami = new Ami();
+$queue = new Queue();
+$agents = new Agents();
+
+$webSocket->emit( "ami", [ $agents->getAgentsInformation() ] );
+print_r($agents->getAgentsInformation());
 
 $event = [
 //	'All',
@@ -15,7 +23,6 @@ $event = [
 	'AgentLogoff',
 	'AgentConnect',
 	'AgentComplete',
-
 	'DeviceStateChange',
 	'QueueCallerAbandon',
 	'QueueCallerJoin',
@@ -24,65 +31,75 @@ $event = [
 	'QueueMemberAdded',
 	'QueueMemberRemoved',
 	'QueueMemberStatus',
-	'OriginateResponse',
-	'DialBegin',
-	'UserEvent',
-	'Newexten',
-	'Hangup',
-	'BridgeEnter',
-	'SoftHangupRequest',
-	'Registry',
-	'QueueMember' 
+	'QueueMember',
 ];
-
-$queue = [];
-$agents = [];
 
 do {
 
 	$amiEvent = $ami->getEvent($event);
+
 	switch ( $amiEvent["Event"] ) {
 
 		case "QueueCallerJoin":
+			$queue->putCallWaiting(
+				$amiEvent["Queue"],
+				$amiEvent
+			);
 
-			$queue = [
-				$amiEvent["Queue"] => [
-					"CallsWaiting" => [
-						$amiEvent["Uniqueid"] => $amiEvent
-					]
-				]
-			];
-
+			$webSocket->emit( "ami", [ $agents->getAgentsInformation() ] );
 		break;
 
 		case "QueueCallerLeave":
-			unset( $queue[ $amiEvent["Queue"] ] ["CallsWaiting"] [ $amiEvent["Uniqueid"] ] );
+			$queue->delCallWaiting(
+				$amiEvent["Queue"],
+				$amiEvent["Uniqueid"]
+			);
 
+			$webSocket->emit( "ami", [ $agents->getAgentsInformation() ] );
 		break;
 
 		case "AgentConnect":
-			$agents[$amiEvent["Interface"]] =  $amiEvent; 
-
+			$agents->putAgentCall( 
+				$amiEvent["Interface"],
+				$amiEvent 
+			);
+			
+			$webSocket->emit( "ami", [ $agents->getAgentsInformation() ] );
 		break;
 
 		case "AgentComplete":
-			$agents[$amiEvent["Interface"]] =  ''; 
-			
+			$agents->delAgentCall( 
+				$amiEvent["Interface"]
+			);
+
+			$webSocket->emit( "ami", [ $agents->getAgentsInformation() ] );
+		break;
+
+		case "QueueMemberRemoved":
+			$agents->removeAgentFromQueue(
+				$amiEvent 
+			);
+
+			$webSocket->emit( "ami", [ $agents->getAgentsInformation() ] );
+		break;
+
+		case "QueueMemberPause":
+		case "QueueMemberAdded":
+		case "QueueMemberStatus":
+			$agents->setAgentStatus(
+				$amiEvent
+			);
+
+			$webSocket->emit( "ami", [ $agents->getAgentsInformation() ] );
 		break;
 
 		default:
 		/* 	$amiEvent = $ami->getEvent($event);
 			$webSocket->emit( "ami", [ $amiEvent ] );
 			print_r($amiEvent);
-			echo "=====================".PHP_EOL; */
-			print_r( $amiEvent["Event"] );
-			echo "=======Filas============";
-			print_r($queue);
-			echo "========================";
-			echo "=======Agents===========";
-			print_r($agents);
-			echo "========================";
+		*/
 
+		print_r($amiEvent).PHP_EOL;
 		break;
 	}
 }
